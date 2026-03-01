@@ -236,7 +236,6 @@
   const pointsEl = el("points");
   const calcBox = el("calcBox");
   const intersectionBox = el("intersectionBox");
-
   let intersectionTraceIndices = [];
 
   // ---------- UI: Funktionen ----------
@@ -364,6 +363,7 @@
     s = s.replace(/\s+/g, " ");
     return `y = ${s}`;
   }
+
   function findRoots(xs, ys) {
     const roots = [];
     for (let i = 0; i < xs.length - 1; i++) {
@@ -383,6 +383,7 @@
     }
     return uniq.slice(0, 10);
   }
+
   function tryQuadraticVertex(compiled) {
     const f0 = safeEval(compiled, 0);
     const f1 = safeEval(compiled, 1);
@@ -404,6 +405,7 @@
     if (yv === null) return null;
     return { xv, yv };
   }
+
   function applyFirstQuadrant(xs, ys) {
     const fx = [], fy = [];
     for (let i = 0; i < xs.length; i++) {
@@ -413,6 +415,7 @@
     }
     return { fx, fy };
   }
+
   function buildCalcBlock(expr, data) {
     const wrap = document.createElement("div");
     wrap.style.marginTop = "10px";
@@ -434,7 +437,8 @@
     return n;
   }
 
-  // ---------- NEU: Padding (Achsen etwas länger als eingestellt) ----------
+  // ---------- Padding: Achsen etwas länger als eingestellt ----------
+  // Wir lassen extra Platz, aber Nummerierung nur im ORIGINALBEREICH.
   function paddedRange(min, max, step, mode, isX) {
     const span = Math.max(1e-9, max - min);
     const pad = Math.max(step, span * 0.06); // ~6% oder mind. 1 Schritt
@@ -442,51 +446,52 @@
     let pMax = max + pad;
 
     if (mode === "first") {
-      // im 1. Quadranten keine negativen Anzeigen erzwingen
       if (isX) pMin = Math.max(0, pMin);
       else pMin = Math.max(0, pMin);
     }
-    // Sicherheitsnetz, falls Benutzer min/max vertauscht
     if (pMax <= pMin) pMax = pMin + Math.max(10, pad);
-    return [pMin, pMax];
+    return [pMin, pMax, pad];
   }
 
-  // ---------- NEU: Tick-Annotierungen direkt an den Achsen ----------
-  // -> Für jede Gitterlinie (dtick = step) ein Label, aber 0 nur einmal als Ursprung-Annotation.
+  // ---------- Ticks / Labels ----------
   function numberToLabel(v, step) {
     const eps = step * 1e-9;
-    if (Math.abs(v) < eps) return ""; // 0 wird separat als "0" am Ursprung gesetzt
-    // hübsch ohne ewig viele Nachkommastellen:
+    if (Math.abs(v) < eps) return ""; // 0 separat als Ursprung
     const rounded = Number(v.toFixed(12));
-    // wenn Schrittweite ganzzahlig ist, ganzzahlig ausgeben
     if (Math.abs(step - Math.round(step)) < 1e-12 && Math.abs(rounded - Math.round(rounded)) < 1e-10) {
       return String(Math.round(rounded));
     }
-    // sonst: kürzen
     return String(Number(rounded.toFixed(10)));
   }
 
-  function buildTickValues(min, max, step) {
+  // Wichtig: Labels NUR im Benutzerbereich [minUser,maxUser], aber Grid bis gepaddet.
+  function buildTickValuesInUserRange(minUser, maxUser, step) {
     const eps = step * 1e-9;
-    const start = Math.ceil(min / step) * step;
+    const start = Math.ceil(minUser / step) * step;
     const vals = [];
-    for (let v = start; v <= max + eps; v += step) {
-      vals.push(Number(v.toFixed(12)));
+    for (let v = start; v <= maxUser + eps; v += step) vals.push(Number(v.toFixed(12)));
+
+    // Falls exakt die Grenze (z.B. 100) wegen Rundung fehlt: erzwingen
+    if (Math.abs((maxUser / step) - Math.round(maxUser / step)) < 1e-9) {
+      const mm = Number(maxUser.toFixed(12));
+      if (!vals.some(t => Math.abs(t - mm) < eps)) vals.push(mm);
     }
-    // Sicherstellen, dass 0 dabei ist (für Grid egal, für Labels wird 0 ausgeblendet)
-    if (min <= 0 && max >= 0) {
+
+    // 0 einfügen (für "0" lassen wir Annotation; hier bleibt sie ohne Text)
+    if (minUser <= 0 && maxUser >= 0) {
       const has0 = vals.some(t => Math.abs(t) < eps);
       if (!has0) vals.push(0);
     }
+
     vals.sort((a,b)=>a-b);
     return vals;
   }
 
-  function buildAxisNumberAnnotations({xmin, xmax, ymin, ymax, xStep, yStep, xAxisLine, yAxisLine}) {
+  function buildAxisNumberAnnotations({ xminUser, xmaxUser, yminUser, ymaxUser, xStep, yStep, xAxisLine, yAxisLine }) {
     const ann = [];
 
-    // X-Ticks: Labels direkt UNTER der x-Achse
-    const xVals = buildTickValues(xmin, xmax, xStep);
+    // X: Labels unter der x-Achse (deutlich darunter)
+    const xVals = buildTickValuesInUserRange(xminUser, xmaxUser, xStep);
     for (const xv of xVals) {
       const txt = numberToLabel(xv, xStep);
       if (!txt) continue;
@@ -498,12 +503,12 @@
         xanchor: "center",
         yanchor: "top",
         font: { color: "#000", size: 12 },
-        yshift: 10
+        yshift: 18   // <-- weiter nach unten, damit es nicht "auf" der Achse liegt
       });
     }
 
-    // Y-Ticks: Labels direkt LINKS der y-Achse
-    const yVals = buildTickValues(ymin, ymax, yStep);
+    // Y: Labels links der y-Achse
+    const yVals = buildTickValuesInUserRange(yminUser, ymaxUser, yStep);
     for (const yv of yVals) {
       const txt = numberToLabel(yv, yStep);
       if (!txt) continue;
@@ -515,7 +520,7 @@
         xanchor: "right",
         yanchor: "middle",
         font: { color: "#000", size: 12 },
-        xshift: -10
+        xshift: -12
       });
     }
 
@@ -527,21 +532,16 @@
     const yStep = safeStep(el("yTickStep").value, 1);
     const showGrid = (el("gridToggle").value === "on");
 
-    // gepaddete Range (damit Punkte nicht am Rand kleben)
     const [xmin, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
     const [ymin, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
 
-    // Wo liegen die Achsenlinien?
-    // - Bei 4 Quadranten: bevorzugt x=0 / y=0 (wenn sichtbar)
-    // - Bei 1. Quadrant: y-Achse links (x=xmin) und x-Achse unten (y=ymin), typischerweise 0
     const xAxisLine = (xmin <= 0 && xmax >= 0) ? 0 : xmin; // y-Achse
     const yAxisLine = (ymin <= 0 && ymax >= 0) ? 0 : ymin; // x-Achse
 
     const shapes = [];
     const annotations = [];
 
-    // Grid über dtick (abhängig von Schrittweite)
-    // Achsenlinien (deutlich)
+    // Achsenlinien
     shapes.push({
       type:"line", xref:"x", yref:"y",
       x0:xmin, x1:xmax, y0:yAxisLine, y1:yAxisLine,
@@ -569,23 +569,25 @@
       arrowcolor:"#000", text:""
     });
 
-    // Achsenlabels direkt an den Achsen (wie gewünscht)
+    // Achsenlabels so, dass sie NICHT hinter den Pfeilspitzen liegen:
+    // x unter dem Pfeil (rechts)
     annotations.push({
       x:xmax, y:yAxisLine, xref:"x", yref:"y",
       text:"<b>x</b>", showarrow:false,
-      xanchor:"left", yanchor:"top",
+      xanchor:"center", yanchor:"top",
       font:{color:"#000", size:14},
-      xshift:10, yshift:8
+      xshift:-6, yshift:20
     });
+    // y links vom Pfeil (oben)
     annotations.push({
       x:xAxisLine, y:ymax, xref:"x", yref:"y",
       text:"<b>y</b>", showarrow:false,
-      xanchor:"right", yanchor:"bottom",
+      xanchor:"right", yanchor:"middle",
       font:{color:"#000", size:14},
-      xshift:-10, yshift:10
+      xshift:-18, yshift:-6
     });
 
-    // Einmalige "0" am Ursprung im 3. Quadranten (links/unten)
+    // "0" am Ursprung im 3. Quadranten (links/unten)
     if (xmin <= 0 && xmax >= 0 && ymin <= 0 && ymax >= 0) {
       annotations.push({
         x:0, y:0, xref:"x", yref:"y",
@@ -596,19 +598,21 @@
       });
     }
 
-    // NUMMERIERUNG DIREKT AN DEN ACHSEN:
+    // Nummerierung (nur im Benutzerbereich!)
     annotations.push(...buildAxisNumberAnnotations({
-      xmin, xmax, ymin, ymax, xStep, yStep, xAxisLine, yAxisLine
+      xminUser, xmaxUser, yminUser, ymaxUser,
+      xStep, yStep, xAxisLine, yAxisLine
     }));
 
     return {
-      _computedRange: { xmin, xmax, ymin, ymax, xAxisLine, yAxisLine, xStep, yStep },
+      _computedRange: { xmin, xmax, ymin, ymax },
 
       margin: { l: 30, r: 20, t: 20, b: 30 },
       paper_bgcolor: "#ffffff",
       plot_bgcolor: "#ffffff",
       font: { color: "#000000" },
 
+      // Grid richtet sich nach Schrittweite; Range ist gepaddet
       xaxis: {
         range: [xmin, xmax],
         tick0: 0,
@@ -875,9 +879,10 @@
     if (xmaxUser <= xminUser) xmaxUser = xminUser + 10;
     if (ymaxUser <= yminUser) ymaxUser = yminUser + 10;
 
-    // gleiche Padding-Logik wie beim Plot
-    const [xmin, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
-    const [ymin, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
+    const [xmin] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
+    const [, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
+    const [ymin] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
+    const [, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
 
     const n = Math.max(600, Math.min(8000, Number(el("numPoints").value) || 1400));
     const xs = linspace(xmin, xmax, n);
@@ -992,7 +997,6 @@
   el("btnIntersections").addEventListener("click", determineIntersections);
   el("btnClearIntersections").addEventListener("click", clearIntersections);
 
-  // Replot bei Änderungen (Schrittweite beeinflusst Nummerierung + Netz + Padding)
   el("xTickStep").addEventListener("change", () => plot({ axesOnly: false }));
   el("yTickStep").addEventListener("change", () => plot({ axesOnly: false }));
   el("gridToggle").addEventListener("change", () => plot({ axesOnly: false }));
