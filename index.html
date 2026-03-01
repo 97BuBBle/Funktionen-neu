@@ -29,170 +29,81 @@
       color:var(--text);
     }
     header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:16px 18px;
-      border-bottom:1px solid var(--border);
-      gap:14px;
-      flex-wrap:wrap;
+      display:flex; justify-content:space-between; align-items:center;
+      padding:16px 18px; border-bottom:1px solid var(--border);
+      gap:14px; flex-wrap:wrap;
     }
     h1{margin:0;font-size:20px}
     .subtitle{margin:4px 0 0;color:var(--muted);font-size:13px}
     .export{display:flex;gap:8px;flex-wrap:wrap}
 
-    .layout{
-      display:grid;
-      grid-template-columns: 480px 1fr;
-      gap:16px;
-      padding:16px;
-    }
+    .layout{display:grid;grid-template-columns:480px 1fr;gap:16px;padding:16px;}
     @media (max-width: 1100px){ .layout{grid-template-columns:1fr} }
 
-    .panel{
-      background:rgba(18,26,51,.92);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:14px;
-    }
-    .plotWrap{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+    .panel{background:rgba(18,26,51,.92);border:1px solid var(--border);border-radius:14px;padding:14px;}
+    .plotWrap{display:flex;flex-direction:column;gap:10px;}
     .plotArea{
-      width:100%;
-      height:calc(100vh - 165px);
-      min-height:520px;
-      border-radius:14px;
-      overflow:hidden;
-      border:1px solid rgba(0,0,0,.15);
-      background:#ffffff;
+      width:100%; height:calc(100vh - 165px); min-height:520px;
+      border-radius:14px; overflow:hidden;
+      border:1px solid rgba(0,0,0,.15); background:#ffffff;
     }
 
-    h2{
-      margin:10px 0 10px;
-      font-size:14px;
-      letter-spacing:.02em;
-      text-transform:uppercase;
-      color:#cdd6ff;
-    }
-    label{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      font-size:12px;
-      color:var(--muted);
-    }
+    h2{margin:10px 0 10px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:#cdd6ff;}
+    label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);}
     input, select{
-      background:#0b1330;
-      color:var(--text);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:10px 10px;
-      outline:none;
+      background:#0b1330;color:var(--text);
+      border:1px solid var(--border);border-radius:10px;
+      padding:10px 10px;outline:none;
     }
     input:focus, select:focus{border-color:rgba(74,125,255,.7)}
-
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 
-    .row{
-      display:flex;
-      gap:10px;
-      margin-top:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
+    .row{display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap;}
 
     .btn{
-      border:1px solid var(--border);
-      background:var(--btn);
-      color:var(--text);
-      border-radius:10px;
-      padding:10px 12px;
-      cursor:pointer;
+      border:1px solid var(--border);background:var(--btn);color:var(--text);
+      border-radius:10px;padding:10px 12px;cursor:pointer;
     }
     .btn:hover{filter:brightness(1.08)}
-    .btnPrimary{background:var(--accent); border-color:transparent; color:#06102a; font-weight:700}
+    .btnPrimary{background:var(--accent);border-color:transparent;color:#06102a;font-weight:700}
     .btnSmall{padding:8px 10px;font-size:12px}
 
     hr{border:none;border-top:1px solid var(--border);margin:14px 0}
 
-    .fnRow{
-      display:grid;
-      grid-template-columns: 1fr 44px 88px 34px;
-      gap:8px;
-      align-items:center;
-      margin-bottom:8px;
-    }
+    .fnRow{display:grid;grid-template-columns:1fr 44px 88px 34px;gap:8px;align-items:center;margin-bottom:8px;}
     .fnRow input[type="text"]{width:100%}
-    .fnRow input[type="color"]{height:40px; padding:0; border-radius:10px; cursor:pointer}
+    .fnRow input[type="color"]{height:40px;padding:0;border-radius:10px;cursor:pointer}
     .iconBtn{
-      width:34px;height:40px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background:#0b1330;
-      color:var(--text);
-      cursor:pointer;
+      width:34px;height:40px;border-radius:10px;border:1px solid var(--border);
+      background:#0b1330;color:var(--text);cursor:pointer;
     }
     .iconBtn.danger{color:var(--danger)}
     .iconBtn:hover{filter:brightness(1.1)}
 
-    .pointsRow{
-      display:grid;
-      grid-template-columns: 92px 1fr 1fr 34px;
-      gap:8px;
-      align-items:center;
-      margin-bottom:8px;
-    }
+    .pointsRow{display:grid;grid-template-columns:92px 1fr 1fr 34px;gap:8px;align-items:center;margin-bottom:8px;}
 
-    .toggleLine{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:var(--muted);
-      font-size:12px;
-      margin-top:8px;
-    }
+    .toggleLine{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin-top:8px;}
     .toggleLine input{transform: translateY(1px);}
 
     .results{
-      background:#0b1330;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px;
-      font-size:13px;
-      color:#d7ddff;
+      background:#0b1330;border:1px solid var(--border);border-radius:12px;
+      padding:10px;font-size:13px;color:#d7ddff;
     }
     .results ul{margin:8px 0 0; padding-left:18px}
     .muted{color:var(--muted)}
-    .hint{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-    }
+    .hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35;}
     code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
 
     .whiteInfo{
-      background:#ffffff;
-      border:1px solid rgba(0,0,0,.15);
-      border-radius:14px;
-      padding:10px 12px;
-      color:#111;
-      font-size:13px;
+      background:#ffffff;border:1px solid rgba(0,0,0,.15);border-radius:14px;
+      padding:10px 12px;color:#111;font-size:13px;
     }
     .whiteInfo h3{ margin:6px 0 8px; font-size:13px; }
     .whiteInfo ul{margin:8px 0 0; padding-left:18px}
     .whiteInfo .muted{color:#444}
 
-    footer{
-      padding:10px 16px;
-      color:var(--muted);
-      font-size:12px;
-      border-top:1px solid var(--border);
-    }
+    footer{padding:10px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
   </style>
 </head>
 
@@ -344,10 +255,7 @@
     colorInput.value = color;
 
     const showSelect = document.createElement("select");
-    showSelect.innerHTML = `
-      <option value="1">sichtbar</option>
-      <option value="0">ausblenden</option>
-    `;
+    showSelect.innerHTML = `<option value="1">sichtbar</option><option value="0">ausblenden</option>`;
     showSelect.value = show ? "1" : "0";
 
     const delBtn = document.createElement("button");
@@ -362,9 +270,7 @@
     row.appendChild(delBtn);
     functionsEl.appendChild(row);
   }
-
   function clearFunctionRows() { functionsEl.innerHTML = ""; }
-
   function getFunctionRows() {
     return [...functionsEl.querySelectorAll(".fnRow")]
       .map(r => ({
@@ -409,9 +315,7 @@
     row.appendChild(delBtn);
     pointsEl.appendChild(row);
   }
-
   function clearPointRows() { pointsEl.innerHTML = ""; }
-
   function getPoints() {
     const rows = [...pointsEl.querySelectorAll(".pointsRow")];
     const pts = [];
@@ -435,18 +339,12 @@
     for (let i = 0; i < n; i++) arr[i] = a + step * i;
     return arr;
   }
-
   function clampFinite(v) {
     if (!Number.isFinite(v)) return null;
     if (Math.abs(v) > 1e6) return null;
     return v;
   }
-
-  function compileExpr(expr) {
-    const node = math.parse(expr);
-    return node.compile();
-  }
-
+  function compileExpr(expr) { return math.parse(expr).compile(); }
   function safeEval(compiled, x) {
     try {
       const y = compiled.evaluate({ x });
@@ -454,15 +352,12 @@
       return clampFinite(y);
     } catch { return null; }
   }
-
   function formatNumber(v) {
     if (v === null || v === undefined) return "—";
     const abs = Math.abs(v);
     const d = abs >= 100 ? 2 : abs >= 10 ? 3 : abs >= 1 ? 4 : 5;
     return Number(v.toFixed(d)).toString();
   }
-
-  // "y = ..." + hochgestellte Exponenten (vereinfachte Darstellung)
   function prettyLegend(expr) {
     let s = expr.replace(/\*\*/g, "^");
     s = s.replace(/\^(-?\d+)/g, (m, p1) => `<sup>${p1}</sup>`);
@@ -470,15 +365,12 @@
     s = s.replace(/\s+/g, " ");
     return `y = ${s}`;
   }
-
-  // Nullstellen: Vorzeichenwechsel + lineare Interpolation
   function findRoots(xs, ys) {
     const roots = [];
     for (let i = 0; i < xs.length - 1; i++) {
       const x1 = xs[i], x2 = xs[i+1];
       const y1 = ys[i], y2 = ys[i+1];
       if (y1 === null || y2 === null) continue;
-
       if (Math.abs(y1) < 1e-6) roots.push(x1);
       if ((y1 > 0 && y2 < 0) || (y1 < 0 && y2 > 0)) {
         const t = y1 / (y1 - y2);
@@ -492,8 +384,6 @@
     }
     return uniq.slice(0, 10);
   }
-
-  // Scheitelpunkt: nur bei sehr wahrscheinlicher Quadratik
   function tryQuadraticVertex(compiled) {
     const f0 = safeEval(compiled, 0);
     const f1 = safeEval(compiled, 1);
@@ -513,10 +403,8 @@
     const xv = -b/(2*a);
     const yv = safeEval(compiled, xv);
     if (yv === null) return null;
-
     return { xv, yv };
   }
-
   function applyFirstQuadrant(xs, ys) {
     const fx = [], fy = [];
     for (let i = 0; i < xs.length; i++) {
@@ -526,22 +414,17 @@
     }
     return { fx, fy };
   }
-
   function buildCalcBlock(expr, data) {
     const wrap = document.createElement("div");
     wrap.style.marginTop = "10px";
-
     const title = document.createElement("div");
     title.innerHTML = "<strong>" + expr + "</strong>";
     wrap.appendChild(title);
-
     const ul = document.createElement("ul");
     const li = (t) => { const e = document.createElement("li"); e.textContent = t; ul.appendChild(e); };
-
     li(`Schnittpunkt mit y-Achse: ${data.yIntercept !== null ? `(0, ${formatNumber(data.yIntercept)})` : "—"}`);
     li(`Scheitelpunkt: ${data.vertex ? `(${formatNumber(data.vertex.x)}, ${formatNumber(data.vertex.y)})` : "—"}`);
     li(`Nullstellen: ${data.roots.length ? data.roots.map(r => "x≈" + formatNumber(r)).join(", ") : "—"}`);
-
     wrap.appendChild(ul);
     return wrap;
   }
@@ -551,10 +434,7 @@
     if (!Number.isFinite(n) || n <= 0) return fallback;
     return n;
   }
-
   function clamp01(v){ return Math.max(0, Math.min(1, v)); }
-
-  // Tick-Position der Achsen im Plot (normiert 0..1)
   function posForY0(ymin, ymax){
     if (ymax === ymin) return 0;
     return clamp01((0 - ymin) / (ymax - ymin));
@@ -564,30 +444,26 @@
     return clamp01((0 - xmin) / (xmax - xmin));
   }
 
-  // Ticktexts mit unterdrückter "0" (damit die 0 nur einmal am Ursprung steht)
+  // Tick-Liste passend zur Schrittweite; "0" wird als Text leer gelassen (weil wir 0 als Annotation setzen)
   function buildTicks(min, max, step) {
-    const tickvals = [];
-    const ticktext = [];
-    const start = Math.ceil(min / step) * step;
     const eps = step * 1e-9;
+    const start = Math.ceil(min / step) * step;
+    const vals = [];
+    const texts = [];
 
     for (let v = start; v <= max + eps; v += step) {
       const vv = Number(v.toFixed(12));
-      tickvals.push(vv);
-      ticktext.push(Math.abs(vv) < eps ? "" : String(Number(vv.toFixed(10))));
+      vals.push(vv);
+      texts.push(Math.abs(vv) < eps ? "" : String(Number(vv.toFixed(10))));
     }
 
-    // Sicherstellen, dass 0 dabei ist (falls Range sie enthält), aber ohne Text:
+    // Stelle sicher, dass 0 vorkommt (ohne Text)
     if (min <= 0 && max >= 0) {
-      const has0 = tickvals.some(t => Math.abs(t) < eps);
-      if (!has0) {
-        tickvals.push(0);
-        ticktext.push("");
-      }
+      const has0 = vals.some(t => Math.abs(t) < eps);
+      if (!has0) { vals.push(0); texts.push(""); }
     }
 
-    // sortieren (falls 0 nachträglich eingefügt)
-    const zipped = tickvals.map((v,i)=>({v, t: ticktext[i]})).sort((a,b)=>a.v-b.v);
+    const zipped = vals.map((v,i)=>({v, t:texts[i]})).sort((a,b)=>a.v-b.v);
     return { tickvals: zipped.map(z=>z.v), ticktext: zipped.map(z=>z.t) };
   }
 
@@ -596,77 +472,72 @@
     const yStep = safeStep(el("yTickStep").value, 1);
     const showGrid = (el("gridToggle").value === "on");
 
-    const y0pos = posForY0(ymin, ymax); // x-Achse bei y=0
-    const x0pos = posForX0(xmin, xmax); // y-Achse bei x=0
+    // Position der Tick-Achsen bei y=0 bzw. x=0 (oder am Rand, falls 0 nicht im Bereich liegt)
+    const y0pos = posForY0(ymin, ymax);
+    const x0pos = posForX0(xmin, xmax);
 
+    // Ticklisten entsprechend der Schrittweite
     const xt = buildTicks(xmin, xmax, xStep);
     const yt = buildTicks(ymin, ymax, yStep);
 
+    // Achsen als Linien + Pfeile
     const shapes = [];
     const annotations = [];
 
-    // Achsenlinien (deutlich) + Pfeile
-    if (ymin <= 0 && ymax >= 0) {
-      shapes.push({
-        type: "line", xref: "x", yref: "y",
-        x0: xmin, x1: xmax, y0: 0, y1: 0,
-        line: { color: "#000", width: 2 }
-      });
-      annotations.push({
-        x: xmax, y: 0,
-        ax: xmax - (xmax - xmin) * 0.06, ay: 0,
-        xref: "x", yref: "y", axref: "x", ayref: "y",
-        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
-        arrowcolor: "#000", text: ""
-      });
-      // Achsenlabel x direkt unter der Achse (rechts)
-      annotations.push({
-        x: xmax, y: 0,
-        xref: "x", yref: "y",
-        text: "<b>x</b>",
-        showarrow: false,
-        xanchor: "left", yanchor: "top",
-        font: { color: "#000", size: 14 },
-        xshift: 10, yshift: 8
-      });
-    }
-    if (xmin <= 0 && xmax >= 0) {
-      shapes.push({
-        type: "line", xref: "x", yref: "y",
-        x0: 0, x1: 0, y0: ymin, y1: ymax,
-        line: { color: "#000", width: 2 }
-      });
-      annotations.push({
-        x: 0, y: ymax,
-        ax: 0, ay: ymax - (ymax - ymin) * 0.06,
-        xref: "x", yref: "y", axref: "x", ayref: "y",
-        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
-        arrowcolor: "#000", text: ""
-      });
-      // Achsenlabel y direkt links der Achse (oben)
-      annotations.push({
-        x: 0, y: ymax,
-        xref: "x", yref: "y",
-        text: "<b>y</b>",
-        showarrow: false,
-        xanchor: "right", yanchor: "bottom",
-        font: { color: "#000", size: 14 },
-        xshift: -10, yshift: 10
-      });
-    }
+    // x-Achse (Linie bei y=0, falls sichtbar; sonst bei ymin im 1. Quadrant-Fall)
+    const yAxisLine = (ymin <= 0 && ymax >= 0) ? 0 : ymin;
+    shapes.push({
+      type:"line", xref:"x", yref:"y",
+      x0:xmin, x1:xmax, y0:yAxisLine, y1:yAxisLine,
+      line:{color:"#000", width:2}
+    });
+    annotations.push({
+      x:xmax, y:yAxisLine,
+      ax:xmax-(xmax-xmin)*0.06, ay:yAxisLine,
+      xref:"x", yref:"y", axref:"x", ayref:"y",
+      showarrow:true, arrowhead:3, arrowsize:1, arrowwidth:2,
+      arrowcolor:"#000", text:""
+    });
+    // "x" direkt unter der x-Achse (rechts)
+    annotations.push({
+      x:xmax, y:yAxisLine, xref:"x", yref:"y",
+      text:"<b>x</b>", showarrow:false,
+      xanchor:"left", yanchor:"top",
+      font:{color:"#000", size:14},
+      xshift:10, yshift:8
+    });
 
-    // EINMALIGE "0" am Ursprung – im 3. Quadranten (links/unten vom Ursprung)
+    // y-Achse (Linie bei x=0, falls sichtbar; sonst bei xmin im 1. Quadrant-Fall)
+    const xAxisLine = (xmin <= 0 && xmax >= 0) ? 0 : xmin;
+    shapes.push({
+      type:"line", xref:"x", yref:"y",
+      x0:xAxisLine, x1:xAxisLine, y0:ymin, y1:ymax,
+      line:{color:"#000", width:2}
+    });
+    annotations.push({
+      x:xAxisLine, y:ymax,
+      ax:xAxisLine, ay:ymax-(ymax-ymin)*0.06,
+      xref:"x", yref:"y", axref:"x", ayref:"y",
+      showarrow:true, arrowhead:3, arrowsize:1, arrowwidth:2,
+      arrowcolor:"#000", text:""
+    });
+    // "y" direkt links der y-Achse (oben)
+    annotations.push({
+      x:xAxisLine, y:ymax, xref:"x", yref:"y",
+      text:"<b>y</b>", showarrow:false,
+      xanchor:"right", yanchor:"bottom",
+      font:{color:"#000", size:14},
+      xshift:-10, yshift:10
+    });
+
+    // EINMALIGE "0" am Ursprung – im 3. Quadranten (links/unten)
     if (xmin <= 0 && xmax >= 0 && ymin <= 0 && ymax >= 0) {
       annotations.push({
-        x: 0, y: 0,
-        xref: "x", yref: "y",
-        text: "0",
-        showarrow: false,
-        xanchor: "right",
-        yanchor: "top",
-        font: { color: "#000", size: 12 },
-        xshift: -8,
-        yshift: -8
+        x:0, y:0, xref:"x", yref:"y",
+        text:"0", showarrow:false,
+        xanchor:"right", yanchor:"top",
+        font:{color:"#000", size:12},
+        xshift:-8, yshift:-8
       });
     }
 
@@ -676,9 +547,11 @@
       plot_bgcolor: "#ffffff",
       font: { color: "#000000" },
 
-      // Primärachsen: Range + GRID, aber ohne Beschriftung am Rand
+      // Hauptachsen: steuern Range + GRID (dtick abhängig von Schrittweite)
       xaxis: {
         range: [xmin, xmax],
+        tick0: 0,
+        dtick: xStep,
         showgrid: showGrid,
         gridcolor: "rgba(0,0,0,0.12)",
         gridwidth: 1,
@@ -688,6 +561,8 @@
       },
       yaxis: {
         range: [ymin, ymax],
+        tick0: 0,
+        dtick: yStep,
         showgrid: showGrid,
         gridcolor: "rgba(0,0,0,0.12)",
         gridwidth: 1,
@@ -696,15 +571,20 @@
         showticklabels: false
       },
 
-      // Sekundärachsen: Ticklabels DIREKT AN DEN ACHSEN (x bei y=0, y bei x=0)
+      // Sekundärachsen: Nummerierung DIREKT AN DEN ACHSEN (bei y=0 / x=0 bzw. am Rand)
       xaxis2: {
         overlaying: "x",
         side: "bottom",
         position: y0pos,
+        range: [xmin, xmax],
+
+        showticklabels: true,
+        ticklabelposition: "inside bottom",
+        ticklabeloverflow: "allow",
 
         ticks: "inside",
         ticklen: 6,
-        tickcolor: "rgba(0,0,0,0.6)",
+        tickcolor: "rgba(0,0,0,0.7)",
         tickfont: { color: "#000", size: 12 },
 
         tickmode: "array",
@@ -719,10 +599,15 @@
         overlaying: "y",
         side: "left",
         position: x0pos,
+        range: [ymin, ymax],
+
+        showticklabels: true,
+        ticklabelposition: "inside left",
+        ticklabeloverflow: "allow",
 
         ticks: "inside",
         ticklen: 6,
-        tickcolor: "rgba(0,0,0,0.6)",
+        tickcolor: "rgba(0,0,0,0.7)",
         tickfont: { color: "#000", size: 12 },
 
         tickmode: "array",
@@ -838,7 +723,6 @@
     // Funktionen plotten
     if (fns.length) {
       const xs = linspace(xmin, xmax, n);
-
       for (const fn of fns) {
         let compiled;
         try { compiled = compileExpr(fn.expr); }
@@ -862,7 +746,6 @@
           hovertemplate: "x=%{x}<br>y=%{y}<extra></extra>"
         });
 
-        // Marker (hilfreich): y-Achse / Scheitel / Nullstellen
         const y0 = safeEval(compiled, 0);
         if (y0 !== null && (mode !== "first" || y0 >= 0)) {
           traces.push({
@@ -966,10 +849,7 @@
     let ymax = Number(el("ymax").value);
     const n = Math.max(600, Math.min(8000, Number(el("numPoints").value) || 1400));
 
-    if (mode === "first") {
-      xmin = Math.max(0, xmin);
-      ymin = Math.max(0, ymin);
-    }
+    if (mode === "first") { xmin = Math.max(0, xmin); ymin = Math.max(0, ymin); }
     if (xmax <= xmin) xmax = xmin + 10;
     if (ymax <= ymin) ymax = ymin + 10;
 
@@ -1008,7 +888,6 @@
     }
 
     intersectionBox.style.display = "block";
-
     if (!uniq.length) {
       intersectionBox.innerHTML = `<h3>Schnittpunkte</h3><div class="muted">Keine Schnittpunkte im sichtbaren Bereich gefunden.</div>`;
       return;
@@ -1045,12 +924,10 @@
   function clearIntersections() {
     const gd = el("plot");
     if (!gd || !gd.data || !gd.data.length) return;
-
     if (intersectionTraceIndices.length) {
       Plotly.deleteTraces("plot", intersectionTraceIndices);
       intersectionTraceIndices = [];
     }
-
     intersectionBox.style.display = "none";
     intersectionBox.innerHTML = `<h3>Schnittpunkte</h3><div class="muted">Klicke auf „Schnittpunkte bestimmen“.</div>`;
   }
@@ -1079,11 +956,7 @@
   });
 
   el("btnSquareAxes").addEventListener("click", () => {
-    // 1:1 Skalierung (Hauptachsen)
-    Plotly.relayout("plot", {
-      "yaxis.scaleanchor": "x",
-      "yaxis.scaleratio": 1
-    });
+    Plotly.relayout("plot", { "yaxis.scaleanchor": "x", "yaxis.scaleratio": 1 });
   });
 
   el("btnToggleCalcs").addEventListener("click", () => {
@@ -1095,7 +968,7 @@
   el("btnIntersections").addEventListener("click", determineIntersections);
   el("btnClearIntersections").addEventListener("click", clearIntersections);
 
-  // Replot bei Änderungen
+  // Replot bei Änderungen (Schrittweite beeinflusst AUCH Netz + Nummerierung)
   el("xTickStep").addEventListener("change", () => plot({ axesOnly: false }));
   el("yTickStep").addEventListener("change", () => plot({ axesOnly: false }));
   el("gridToggle").addEventListener("change", () => plot({ axesOnly: false }));
