@@ -94,16 +94,8 @@
     }
     input:focus, select:focus{border-color:rgba(74,125,255,.7)}
 
-    .grid2{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    .grid3{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:10px;
-    }
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 
     .row{
       display:flex;
@@ -480,7 +472,7 @@
   }
 
   // Nullstellen: Vorzeichenwechsel + lineare Interpolation
-  function findRoots(xs, ys, xmin, xmax) {
+  function findRoots(xs, ys) {
     const roots = [];
     for (let i = 0; i < xs.length - 1; i++) {
       const x1 = xs[i], x2 = xs[i+1];
@@ -560,81 +552,43 @@
     return n;
   }
 
-  // --------- NEU: Ticks an den Achsen (nicht am Rand) ----------
-  // Plotly kann "ticklabelposition" nutzen:
-  // - x: "inside bottom"
-  // - y: "inside left"
-  // Damit stehen Zahlen im Plot nahe der jeweiligen Achse.
-  //
-  // Zusätzlich: Wir zeichnen die Koordinatenachsen als Linien bei x=0 / y=0 (dicker),
-  // damit die Tick-Labels eindeutig "an den Achsen" wahrgenommen werden.
-  function buildAxisShapesAndAnnotations(xmin, xmax, ymin, ymax) {
-    const shapes = [];
-    const ann = [];
+  function clamp01(v){ return Math.max(0, Math.min(1, v)); }
 
-    // x-Achse Linie + Pfeil (wenn 0 im y-range)
-    if (ymin <= 0 && ymax >= 0) {
-      shapes.push({
-        type: "line",
-        xref: "x", yref: "y",
-        x0: xmin, x1: xmax,
-        y0: 0, y1: 0,
-        line: { color: "#000", width: 2 }
-      });
+  // Tick-Position der Achsen im Plot (normiert 0..1)
+  function posForY0(ymin, ymax){
+    if (ymax === ymin) return 0;
+    return clamp01((0 - ymin) / (ymax - ymin));
+  }
+  function posForX0(xmin, xmax){
+    if (xmax === xmin) return 0;
+    return clamp01((0 - xmin) / (xmax - xmin));
+  }
 
-      // Pfeil nach rechts
-      ann.push({
-        x: xmax, y: 0,
-        ax: xmax - (xmax - xmin) * 0.06, ay: 0,
-        xref: "x", yref: "y", axref: "x", ayref: "y",
-        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
-        arrowcolor: "#000", text: ""
-      });
+  // Ticktexts mit unterdrückter "0" (damit die 0 nur einmal am Ursprung steht)
+  function buildTicks(min, max, step) {
+    const tickvals = [];
+    const ticktext = [];
+    const start = Math.ceil(min / step) * step;
+    const eps = step * 1e-9;
 
-      // Achsenlabel "x" rechts
-      ann.push({
-        x: xmax, y: 0,
-        xref: "x", yref: "y",
-        text: "<b>x</b>",
-        showarrow: false,
-        xanchor: "left", yanchor: "top",
-        font: { color: "#000", size: 14 },
-        xshift: 10, yshift: -8
-      });
+    for (let v = start; v <= max + eps; v += step) {
+      const vv = Number(v.toFixed(12));
+      tickvals.push(vv);
+      ticktext.push(Math.abs(vv) < eps ? "" : String(Number(vv.toFixed(10))));
     }
 
-    // y-Achse Linie + Pfeil (wenn 0 im x-range)
-    if (xmin <= 0 && xmax >= 0) {
-      shapes.push({
-        type: "line",
-        xref: "x", yref: "y",
-        x0: 0, x1: 0,
-        y0: ymin, y1: ymax,
-        line: { color: "#000", width: 2 }
-      });
-
-      // Pfeil nach oben
-      ann.push({
-        x: 0, y: ymax,
-        ax: 0, ay: ymax - (ymax - ymin) * 0.06,
-        xref: "x", yref: "y", axref: "x", ayref: "y",
-        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
-        arrowcolor: "#000", text: ""
-      });
-
-      // Achsenlabel "y" oben
-      ann.push({
-        x: 0, y: ymax,
-        xref: "x", yref: "y",
-        text: "<b>y</b>",
-        showarrow: false,
-        xanchor: "left", yanchor: "bottom",
-        font: { color: "#000", size: 14 },
-        xshift: 8, yshift: 10
-      });
+    // Sicherstellen, dass 0 dabei ist (falls Range sie enthält), aber ohne Text:
+    if (min <= 0 && max >= 0) {
+      const has0 = tickvals.some(t => Math.abs(t) < eps);
+      if (!has0) {
+        tickvals.push(0);
+        ticktext.push("");
+      }
     }
 
-    return { shapes, annotations: ann };
+    // sortieren (falls 0 nachträglich eingefügt)
+    const zipped = tickvals.map((v,i)=>({v, t: ticktext[i]})).sort((a,b)=>a.v-b.v);
+    return { tickvals: zipped.map(z=>z.v), ticktext: zipped.map(z=>z.t) };
   }
 
   function baseLayout({ xmin, xmax, ymin, ymax, showLegend }) {
@@ -642,56 +596,144 @@
     const yStep = safeStep(el("yTickStep").value, 1);
     const showGrid = (el("gridToggle").value === "on");
 
-    const { shapes, annotations } = buildAxisShapesAndAnnotations(xmin, xmax, ymin, ymax);
+    const y0pos = posForY0(ymin, ymax); // x-Achse bei y=0
+    const x0pos = posForX0(xmin, xmax); // y-Achse bei x=0
+
+    const xt = buildTicks(xmin, xmax, xStep);
+    const yt = buildTicks(ymin, ymax, yStep);
+
+    const shapes = [];
+    const annotations = [];
+
+    // Achsenlinien (deutlich) + Pfeile
+    if (ymin <= 0 && ymax >= 0) {
+      shapes.push({
+        type: "line", xref: "x", yref: "y",
+        x0: xmin, x1: xmax, y0: 0, y1: 0,
+        line: { color: "#000", width: 2 }
+      });
+      annotations.push({
+        x: xmax, y: 0,
+        ax: xmax - (xmax - xmin) * 0.06, ay: 0,
+        xref: "x", yref: "y", axref: "x", ayref: "y",
+        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
+        arrowcolor: "#000", text: ""
+      });
+      // Achsenlabel x direkt unter der Achse (rechts)
+      annotations.push({
+        x: xmax, y: 0,
+        xref: "x", yref: "y",
+        text: "<b>x</b>",
+        showarrow: false,
+        xanchor: "left", yanchor: "top",
+        font: { color: "#000", size: 14 },
+        xshift: 10, yshift: 8
+      });
+    }
+    if (xmin <= 0 && xmax >= 0) {
+      shapes.push({
+        type: "line", xref: "x", yref: "y",
+        x0: 0, x1: 0, y0: ymin, y1: ymax,
+        line: { color: "#000", width: 2 }
+      });
+      annotations.push({
+        x: 0, y: ymax,
+        ax: 0, ay: ymax - (ymax - ymin) * 0.06,
+        xref: "x", yref: "y", axref: "x", ayref: "y",
+        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
+        arrowcolor: "#000", text: ""
+      });
+      // Achsenlabel y direkt links der Achse (oben)
+      annotations.push({
+        x: 0, y: ymax,
+        xref: "x", yref: "y",
+        text: "<b>y</b>",
+        showarrow: false,
+        xanchor: "right", yanchor: "bottom",
+        font: { color: "#000", size: 14 },
+        xshift: -10, yshift: 10
+      });
+    }
+
+    // EINMALIGE "0" am Ursprung – im 3. Quadranten (links/unten vom Ursprung)
+    if (xmin <= 0 && xmax >= 0 && ymin <= 0 && ymax >= 0) {
+      annotations.push({
+        x: 0, y: 0,
+        xref: "x", yref: "y",
+        text: "0",
+        showarrow: false,
+        xanchor: "right",
+        yanchor: "top",
+        font: { color: "#000", size: 12 },
+        xshift: -8,
+        yshift: -8
+      });
+    }
 
     return {
-      margin: { l: 35, r: 20, t: 20, b: 35 },
+      margin: { l: 30, r: 20, t: 20, b: 30 },
       paper_bgcolor: "#ffffff",
       plot_bgcolor: "#ffffff",
       font: { color: "#000000" },
 
+      // Primärachsen: Range + GRID, aber ohne Beschriftung am Rand
       xaxis: {
         range: [xmin, xmax],
-        tick0: 0,
-        dtick: xStep,
-
-        // Zahlen an der Achse (nicht am Bildrand):
-        ticklabelposition: "inside bottom",
-        ticks: "inside",
-        ticklen: 6,
-        tickcolor: "rgba(0,0,0,0.5)",
-        tickfont: { color: "#000", size: 12 },
-
         showgrid: showGrid,
         gridcolor: "rgba(0,0,0,0.12)",
         gridwidth: 1,
-
-        // Wir nutzen eigene Achse-Linie bei y=0, daher:
         zeroline: false,
-        showline: false
+        ticks: "",
+        showticklabels: false
       },
-
       yaxis: {
         range: [ymin, ymax],
-        tick0: 0,
-        dtick: yStep,
-
-        // Zahlen an der Achse:
-        ticklabelposition: "inside left",
-        ticks: "inside",
-        ticklen: 6,
-        tickcolor: "rgba(0,0,0,0.5)",
-        tickfont: { color: "#000", size: 12 },
-
         showgrid: showGrid,
         gridcolor: "rgba(0,0,0,0.12)",
         gridwidth: 1,
+        zeroline: false,
+        ticks: "",
+        showticklabels: false
+      },
 
+      // Sekundärachsen: Ticklabels DIREKT AN DEN ACHSEN (x bei y=0, y bei x=0)
+      xaxis2: {
+        overlaying: "x",
+        side: "bottom",
+        position: y0pos,
+
+        ticks: "inside",
+        ticklen: 6,
+        tickcolor: "rgba(0,0,0,0.6)",
+        tickfont: { color: "#000", size: 12 },
+
+        tickmode: "array",
+        tickvals: xt.tickvals,
+        ticktext: xt.ticktext,
+
+        showgrid: false,
+        zeroline: false,
+        showline: false
+      },
+      yaxis2: {
+        overlaying: "y",
+        side: "left",
+        position: x0pos,
+
+        ticks: "inside",
+        ticklen: 6,
+        tickcolor: "rgba(0,0,0,0.6)",
+        tickfont: { color: "#000", size: 12 },
+
+        tickmode: "array",
+        tickvals: yt.tickvals,
+        ticktext: yt.ticktext,
+
+        showgrid: false,
         zeroline: false,
         showline: false
       },
 
-      // Koordinatenachsen als Shapes + Pfeile als Annotations
       shapes,
       annotations,
 
@@ -764,6 +806,7 @@
     const fnsAll = getFunctionRows();
     const fns = fnsAll.filter(f => f.show);
 
+    // Berechnungen nur wenn Box sichtbar
     if (calcBox.style.display !== "none") {
       calcBox.innerHTML = "";
       const blocks = document.createElement("div");
@@ -784,7 +827,7 @@
           }
           const ysRaw = xs.map(x => safeEval(compiled, x));
           const y0 = safeEval(compiled, 0);
-          const roots = findRoots(xs, ysRaw, xmin, xmax);
+          const roots = findRoots(xs, ysRaw);
           const vertexQ = tryQuadraticVertex(compiled);
           const vertex = vertexQ ? { x: vertexQ.xv, y: vertexQ.yv } : null;
           blocks.appendChild(buildCalcBlock(fn.expr, { yIntercept: y0, roots, vertex }));
@@ -792,6 +835,7 @@
       }
     }
 
+    // Funktionen plotten
     if (fns.length) {
       const xs = linspace(xmin, xmax, n);
 
@@ -818,7 +862,7 @@
           hovertemplate: "x=%{x}<br>y=%{y}<extra></extra>"
         });
 
-        // Marker (optional): y-Achse / Scheitel / Nullstellen
+        // Marker (hilfreich): y-Achse / Scheitel / Nullstellen
         const y0 = safeEval(compiled, 0);
         if (y0 !== null && (mode !== "first" || y0 >= 0)) {
           traces.push({
@@ -844,7 +888,7 @@
           }
         }
 
-        const roots = findRoots(xs, ysRaw, xmin, xmax);
+        const roots = findRoots(xs, ysRaw);
         if (roots.length) {
           traces.push({
             x: roots, y: roots.map(() => 0),
@@ -1035,7 +1079,11 @@
   });
 
   el("btnSquareAxes").addEventListener("click", () => {
-    Plotly.relayout("plot", { "yaxis.scaleanchor": "x", "yaxis.scaleratio": 1 });
+    // 1:1 Skalierung (Hauptachsen)
+    Plotly.relayout("plot", {
+      "yaxis.scaleanchor": "x",
+      "yaxis.scaleratio": 1
+    });
   });
 
   el("btnToggleCalcs").addEventListener("click", () => {
@@ -1047,13 +1095,13 @@
   el("btnIntersections").addEventListener("click", determineIntersections);
   el("btnClearIntersections").addEventListener("click", clearIntersections);
 
-  // Replot wenn Achseneinteilung / Netz / Quadrant geändert wird
+  // Replot bei Änderungen
   el("xTickStep").addEventListener("change", () => plot({ axesOnly: false }));
   el("yTickStep").addEventListener("change", () => plot({ axesOnly: false }));
   el("gridToggle").addEventListener("change", () => plot({ axesOnly: false }));
   el("quadrantMode").addEventListener("change", () => plot({ axesOnly: true }));
 
-  // ---------- Start: leeres Koordinatensystem ----------
+  // Start: leeres Koordinatensystem
   plot({ axesOnly: true });
 </script>
 </body>
