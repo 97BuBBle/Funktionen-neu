@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Funktionsplotter (Lehrkraft)</title>
+
+  <!-- Plotly (Plotten + Export JPG/SVG) -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <!-- math.js (Ausdruck parsen & auswerten) -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.2/lib/browser/math.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a33;
+      --text:#e8ecff;
+      --muted:#a7b0d9;
+      --btn:#1d2a57;
+      --accent:#4a7dff;
+      --danger:#ff5a6a;
+      --border:rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,var(--bg),#070a14);
+      color:var(--text);
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px 18px;
+      border-bottom:1px solid var(--border);
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    h1{margin:0;font-size:20px}
+    .subtitle{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .export{display:flex;gap:8px;flex-wrap:wrap}
+    .layout{
+      display:grid;
+      grid-template-columns: 460px 1fr;
+      gap:16px;
+      padding:16px;
+    }
+    @media (max-width: 1100px){ .layout{grid-template-columns:1fr} }
+    .panel{
+      background:rgba(18,26,51,.92);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+    }
+    .plotWrap{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .plotArea{
+      width:100%;
+      height:calc(100vh - 165px);
+      min-height:520px;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.15);
+      background:#ffffff;
+    }
+    h2{
+      margin:10px 0 10px;
+      font-size:14px;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      color:#cdd6ff;
+    }
+    label{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    input, select{
+      background:#0b1330;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 10px;
+      outline:none;
+    }
+    input:focus, select:focus{border-color:rgba(74,125,255,.7)}
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--btn);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    .btn:hover{filter:brightness(1.08)}
+    .btnPrimary{background:var(--accent); border-color:transparent; color:#06102a; font-weight:700}
+    .btnSmall{padding:8px 10px;font-size:12px}
+    hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+    .fnRow{
+      display:grid;
+      grid-template-columns: 1fr 44px 88px 34px;
+      gap:8px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .fnRow input[type="text"]{width:100%}
+    .fnRow input[type="color"]{
+      height:40px; padding:0; border-radius:10px; cursor:pointer;
+    }
+    .iconBtn{
+      width:34px;height:40px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:#0b1330;
+      color:var(--text);
+      cursor:pointer;
+    }
+    .iconBtn.danger{color:var(--danger)}
+    .iconBtn:hover{filter:brightness(1.1)}
+    .toggleLine{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:8px;
+    }
+    .toggleLine input{transform: translateY(1px);}
+    .results{
+      background:#0b1330;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      font-size:13px;
+      color:#d7ddff;
+    }
+    .results ul{margin:8px 0 0; padding-left:18px}
+    .muted{color:var(--muted)}
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
+    .whiteInfo{
+      background:#ffffff;
+      border:1px solid rgba(0,0,0,.15);
+      border-radius:14px;
+      padding:10px 12px;
+      color:#111;
+      font-size:13px;
+    }
+    .whiteInfo h3{ margin:6px 0 8px; font-size:13px; }
+    .whiteInfo ul{margin:8px 0 0; padding-left:18px}
+    .whiteInfo .muted{color:#444}
+
+    .pointsRow{
+      display:grid;
+      grid-template-columns: 92px 1fr 1fr 34px;
+      gap:8px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .badge{
+      display:inline-block;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    footer{
+      padding:10px 16px;
+      color:var(--muted);
+      font-size:12px;
+      border-top:1px solid var(--border);
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div>
+    <h1>Funktionsplotter</h1>
+    <p class="subtitle">Funktionen • Punkte • leeres Koordinatensystem • Achsen mit Pfeilen • Schnittpunkte • Export JPG/SVG</p>
+  </div>
+  <div class="export">
+    <button id="btnExportJpg" class="btn">Export JPG</button>
+    <button id="btnExportSvg" class="btn">Export SVG</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="panel">
+    <h2>Darstellung</h2>
+
+    <div class="row">
+      <button id="btnAxesOnly" class="btn btnSmall">Nur Koordinatensystem (leer)</button>
+      <button id="btnPlot" class="btn btnPrimary">Plotten</button>
+    </div>
+
+    <div class="toggleLine">
+      <input id="legendToggle" type="checkbox" checked />
+      <label for="legendToggle" style="gap:0; margin:0; font-size:12px; color:var(--muted);">
+        Funktionsgleichungen als Farblegende im Plot anzeigen
+      </label>
+    </div>
+
+    <hr />
+
+    <h2>Funktionen</h2>
+    <div id="functions"></div>
+    <div class="row">
+      <button id="btnAddFn" class="btn">+ Funktion</button>
+    </div>
+
+    <p class="hint">
+      Beispiele: <code>2*x-3</code>, <code>x^2-4</code>, <code>sin(x)</code>, <code>sqrt(x)</code>, <code>abs(x)</code>, <code>1/(x-2)</code>
+    </p>
+
+    <hr />
+
+    <h2>Punkte</h2>
+    <div class="row" style="margin-top:0;">
+      <span class="badge">Name optional</span>
+      <span class="badge">x / y als Zahl</span>
+    </div>
+    <div id="points"></div>
+    <div class="row">
+      <button id="btnAddPt" class="btn">+ Punkt</button>
+    </div>
+
+    <hr />
+
+    <h2>Koordinatensystem</h2>
+    <div class="grid2">
+      <label>
+        Anzeige
+        <select id="quadrantMode">
+          <option value="four">4 Quadranten</option>
+          <option value="first">Nur 1. Quadrant (x≥0,y≥0)</option>
+        </select>
+      </label>
+
+      <label>
+        Punkte (Auflösung)
+        <input id="numPoints" type="number" min="200" max="8000" step="100" value="1400" />
+      </label>
+
+      <label>x_min <input id="xmin" type="number" step="0.5" value="-10" /></label>
+      <label>x_max <input id="xmax" type="number" step="0.5" value="10" /></label>
+      <label>y_min <input id="ymin" type="number" step="0.5" value="-10" /></label>
+      <label>y_max <input id="ymax" type="number" step="0.5" value="10" /></label>
+    </div>
+
+    <div class="row">
+      <button class="btn btnSmall" data-range="-10,10,-10,10">-10..10</button>
+      <button class="btn btnSmall" data-range="-5,5,-5,5">-5..5</button>
+      <button class="btn btnSmall" data-range="0,10,0,10">0..10 (1. Quadrant)</button>
+      <button class="btn btnSmall" id="btnSquareAxes">1:1 Skalierung</button>
+    </div>
+
+    <hr />
+
+    <h2>Berechnungen & Schnittpunkte</h2>
+    <div class="row">
+      <button id="btnToggleCalcs" class="btn btnSmall">Berechnungen anzeigen/ausblenden</button>
+      <button id="btnIntersections" class="btn btnSmall">Schnittpunkte bestimmen</button>
+      <button id="btnClearIntersections" class="btn btnSmall">Schnittpunkte löschen</button>
+    </div>
+
+    <div id="calcBox" class="results" style="margin-top:10px; display:none;">
+      <p class="muted">Plotte eine Funktion, um Berechnungen zu sehen.</p>
+    </div>
+  </section>
+
+  <section class="plotWrap">
+    <div id="plot" class="plotArea"></div>
+    <div id="intersectionBox" class="whiteInfo" style="display:none;">
+      <h3>Schnittpunkte</h3>
+      <div class="muted">Klicke auf „Schnittpunkte bestimmen“.</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Lokales Tool (keine Speicherung/Übertragung). Ideal für GitHub Pages.
+</footer>
+
+<script>
+  const el = (id) => document.getElementById(id);
+  const functionsEl = el("functions");
+  const pointsEl = el("points");
+  const calcBox = el("calcBox");
+  const intersectionBox = el("intersectionBox");
+
+  let intersectionTraceIndices = []; // zum Löschen von Schnittpunkt-Markern
+
+  // ---------- UI: Funktionen ----------
+  function addFunctionRow({ expr = "", color = "#4a7dff", show = true } = {}) {
+    const row = document.createElement("div");
+    row.className = "fnRow";
+
+    const exprInput = document.createElement("input");
+    exprInput.type = "text";
+    exprInput.placeholder = "z.B. x^2-4";
+    exprInput.value = expr;
+
+    const colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.value = color;
+
+    const showSelect = document.createElement("select");
+    showSelect.innerHTML = `
+      <option value="1">sichtbar</option>
+      <option value="0">ausblenden</option>
+    `;
+    showSelect.value = show ? "1" : "0";
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "iconBtn danger";
+    delBtn.title = "Zeile löschen";
+    delBtn.textContent = "✕";
+    delBtn.onclick = () => row.remove();
+
+    row.appendChild(exprInput);
+    row.appendChild(colorInput);
+    row.appendChild(showSelect);
+    row.appendChild(delBtn);
+    functionsEl.appendChild(row);
+  }
+
+  function getFunctionRows() {
+    return [...functionsEl.querySelectorAll(".fnRow")]
+      .map(r => ({
+        expr: r.querySelector('input[type="text"]').value.trim(),
+        color: r.querySelector('input[type="color"]').value,
+        show: r.querySelector("select").value === "1"
+      }))
+      .filter(f => f.expr.length > 0);
+  }
+
+  // ---------- UI: Punkte ----------
+  function addPointRow({ name = "", x = "", y = "" } = {}) {
+    const row = document.createElement("div");
+    row.className = "pointsRow";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = "Name (A)";
+    nameInput.value = name;
+
+    const xInput = document.createElement("input");
+    xInput.type = "number";
+    xInput.step = "0.1";
+    xInput.placeholder = "x";
+    xInput.value = x;
+
+    const yInput = document.createElement("input");
+    yInput.type = "number";
+    yInput.step = "0.1";
+    yInput.placeholder = "y";
+    yInput.value = y;
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "iconBtn danger";
+    delBtn.title = "Punkt löschen";
+    delBtn.textContent = "✕";
+    delBtn.onclick = () => row.remove();
+
+    row.appendChild(nameInput);
+    row.appendChild(xInput);
+    row.appendChild(yInput);
+    row.appendChild(delBtn);
+    pointsEl.appendChild(row);
+  }
+
+  function getPoints() {
+    const rows = [...pointsEl.querySelectorAll(".pointsRow")];
+    const pts = [];
+    for (const r of rows) {
+      const name = r.querySelectorAll("input")[0].value.trim();
+      const xVal = r.querySelectorAll("input")[1].value;
+      const yVal = r.querySelectorAll("input")[2].value;
+      if (xVal === "" || yVal === "") continue;
+      const x = Number(xVal);
+      const y = Number(yVal);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      pts.push({ name, x, y });
+    }
+    return pts;
+  }
+
+  // ---------- Math / Helpers ----------
+  function linspace(a, b, n) {
+    const arr = new Array(n);
+    const step = (b - a) / (n - 1);
+    for (let i = 0; i < n; i++) arr[i] = a + step * i;
+    return arr;
+  }
+
+  function clampFinite(v) {
+    if (!Number.isFinite(v)) return null;
+    if (Math.abs(v) > 1e6) return null;
+    return v;
+  }
+
+  function compileExpr(expr) {
+    const node = math.parse(expr);
+    return node.compile();
+  }
+
+  function safeEval(compiled, x) {
+    try {
+      const y = compiled.evaluate({ x });
+      if (typeof y !== "number") return null;
+      return clampFinite(y);
+    } catch { return null; }
+  }
+
+  function formatNumber(v) {
+    if (v === null || v === undefined) return "—";
+    const abs = Math.abs(v);
+    const d = abs >= 100 ? 2 : abs >= 10 ? 3 : abs >= 1 ? 4 : 5;
+    return Number(v.toFixed(d)).toString();
+  }
+
+  function withinRange(x, xmin, xmax) {
+    return x >= xmin - 1e-9 && x <= xmax + 1e-9;
+  }
+
+  // hübsche Anzeige: "y = ..." + hochgestellte Exponenten (vereinfachte Darstellung)
+  function prettyLegend(expr) {
+    let s = expr.replace(/\*\*/g, "^");
+    s = s.replace(/\^(-?\d+)/g, (m, p1) => `<sup>${p1}</sup>`);
+    s = s.replace(/\^\(([^)]+)\)/g, (m, p1) => `<sup>${p1}</sup>`);
+    s = s.replace(/\s+/g, " ");
+    return `y = ${s}`;
+  }
+
+  // Nullstellen: Vorzeichenwechsel im Sampling + lineare Interpolation
+  function findRoots(xs, ys, xmin, xmax) {
+    const roots = [];
+    for (let i = 0; i < xs.length - 1; i++) {
+      const x1 = xs[i], x2 = xs[i+1];
+      const y1 = ys[i], y2 = ys[i+1];
+      if (y1 === null || y2 === null) continue;
+
+      if (Math.abs(y1) < 1e-6 && withinRange(x1, xmin, xmax)) roots.push(x1);
+
+      if ((y1 > 0 && y2 < 0) || (y1 < 0 && y2 > 0)) {
+        const t = y1 / (y1 - y2);
+        const r = x1 + t * (x2 - x1);
+        if (withinRange(r, xmin, xmax)) roots.push(r);
+      }
+    }
+    roots.sort((a,b)=>a-b);
+    const uniq = [];
+    for (const r of roots) {
+      if (uniq.length === 0 || Math.abs(r - uniq[uniq.length - 1]) > 1e-2) uniq.push(r);
+    }
+    return uniq.slice(0, 10);
+  }
+
+  // Scheitelpunkt: nur bei sehr wahrscheinlicher Quadratik
+  function tryQuadraticVertex(compiled) {
+    const f0 = safeEval(compiled, 0);
+    const f1 = safeEval(compiled, 1);
+    const fm1 = safeEval(compiled, -1);
+    if (f0 === null || f1 === null || fm1 === null) return null;
+
+    const c = f0;
+    const a = (f1 + fm1 - 2*c) / 2;
+    const b = (f1 - fm1) / 2;
+    if (!Number.isFinite(a) || Math.abs(a) < 1e-12) return null;
+
+    const f2 = safeEval(compiled, 2);
+    if (f2 === null) return null;
+    const pred = 4*a + 2*b + c;
+    if (Math.abs(f2 - pred) > 1e-3 * (1 + Math.abs(f2))) return null;
+
+    const xv = -b/(2*a);
+    const yv = safeEval(compiled, xv);
+    if (yv === null) return null;
+
+    return { xv, yv };
+  }
+
+  function applyFirstQuadrant(xs, ys) {
+    const fx = [], fy = [];
+    for (let i = 0; i < xs.length; i++) {
+      const x = xs[i], y = ys[i];
+      if (x >= 0 && y !== null && y >= 0) { fx.push(x); fy.push(y); }
+      else { fx.push(x); fy.push(null); }
+    }
+    return { fx, fy };
+  }
+
+  function buildCalcBlock(expr, data) {
+    const wrap = document.createElement("div");
+    wrap.style.marginTop = "10px";
+
+    const title = document.createElement("div");
+    title.innerHTML = "<strong>" + expr + "</strong>";
+    wrap.appendChild(title);
+
+    const ul = document.createElement("ul");
+    const li = (t) => { const e = document.createElement("li"); e.textContent = t; ul.appendChild(e); };
+
+    if (data.yIntercept !== null) li(`Schnittpunkt mit y-Achse: (0, ${formatNumber(data.yIntercept)})`);
+    else li(`Schnittpunkt mit y-Achse: — (0 liegt nicht im sichtbaren x-Bereich)`);
+
+    if (data.vertex) li(`Scheitelpunkt: (${formatNumber(data.vertex.x)}, ${formatNumber(data.vertex.y)})`);
+    else li("Scheitelpunkt: — (automatisch nur bei quadratischen Funktionen)");
+
+    if (data.roots.length) li(`Nullstellen: ${data.roots.map(r => "x≈" + formatNumber(r)).join(", ")}`);
+    else li("Nullstellen: — (keine im sichtbaren x-Bereich gefunden)");
+
+    wrap.appendChild(ul);
+    return wrap;
+  }
+
+  function buildAxisAnnotations(xmin, xmax, ymin, ymax) {
+    const ann = [];
+
+    // x-Achse Pfeil entlang y=0 + label "x" rechts
+    if (ymin <= 0 && ymax >= 0) {
+      const xStart = xmin + (xmax - xmin) * 0.02;
+      const xEnd = xmax;
+      ann.push({
+        x: xEnd, y: 0,
+        ax: xStart, ay: 0,
+        xref: "x", yref: "y", axref: "x", ayref: "y",
+        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
+        arrowcolor: "#000", text: ""
+      });
+      ann.push({
+        x: xEnd, y: 0,
+        xref: "x", yref: "y",
+        text: "<b>x</b>",
+        showarrow: false,
+        xanchor: "left", yanchor: "top",
+        font: { color: "#000", size: 14 },
+        xshift: 10, yshift: -8
+      });
+    }
+
+    // y-Achse Pfeil entlang x=0 + label "y" oben
+    if (xmin <= 0 && xmax >= 0) {
+      const yStart = ymin + (ymax - ymin) * 0.02;
+      const yEnd = ymax;
+      ann.push({
+        x: 0, y: yEnd,
+        ax: 0, ay: yStart,
+        xref: "x", yref: "y", axref: "x", ayref: "y",
+        showarrow: true, arrowhead: 3, arrowsize: 1, arrowwidth: 2,
+        arrowcolor: "#000", text: ""
+      });
+      ann.push({
+        x: 0, y: yEnd,
+        xref: "x", yref: "y",
+        text: "<b>y</b>",
+        showarrow: false,
+        xanchor: "left", yanchor: "bottom",
+        font: { color: "#000", size: 14 },
+        xshift: 8, yshift: 10
+      });
+    }
+
+    return ann;
+  }
+
+  // ---------- Plot (mit oder ohne Funktionen) ----------
+  function baseLayout({ xmin, xmax, ymin, ymax, showLegend }) {
+    const axisAnnotations = buildAxisAnnotations(xmin, xmax, ymin, ymax);
+    return {
+      margin: { l: 60, r: 25, t: 20, b: 60 },
+      paper_bgcolor: "#ffffff",
+      plot_bgcolor: "#ffffff",
+      font: { color: "#000000" },
+      xaxis: {
+        range: [xmin, xmax],
+        gridcolor: "rgba(0,0,0,0.12)",
+        zeroline: false,
+        ticks: "outside",
+        tickcolor: "rgba(0,0,0,0.35)"
+      },
+      yaxis: {
+        range: [ymin, ymax],
+        gridcolor: "rgba(0,0,0,0.12)",
+        zeroline: false,
+        ticks: "outside",
+        tickcolor: "rgba(0,0,0,0.35)"
+      },
+      showlegend: showLegend,
+      legend: {
+        x: 0.02, y: 0.98,
+        xanchor: "left", yanchor: "top",
+        bgcolor: "rgba(255,255,255,0.85)",
+        bordercolor: "rgba(0,0,0,0.15)",
+        borderwidth: 1,
+        font: { color: "#000", size: 12 }
+      },
+      annotations: axisAnnotations
+    };
+  }
+
+  function plot({ axesOnly = false } = {}) {
+    // Schnittpunkt-Markierungen löschen (weil neu plotten)
+    intersectionTraceIndices = [];
+    intersectionBox.style.display = "none";
+    intersectionBox.innerHTML = `<h3>Schnittpunkte</h3><div class="muted">Klicke auf „Schnittpunkte bestimmen“.</div>`;
+
+    const mode = el("quadrantMode").value;
+    const showLegend = el("legendToggle").checked;
+
+    let xmin = Number(el("xmin").value);
+    let xmax = Number(el("xmax").value);
+    let ymin = Number(el("ymin").value);
+    let ymax = Number(el("ymax").value);
+
+    const n = Math.max(200, Math.min(8000, Number(el("numPoints").value) || 1400));
+
+    if (mode === "first") {
+      xmin = Math.max(0, xmin);
+      ymin = Math.max(0, ymin);
+    }
+    if (xmax <= xmin) xmax = xmin + 10;
+    if (ymax <= ymin) ymax = ymin + 10;
+
+    const layout = baseLayout({ xmin, xmax, ymin, ymax, showLegend: (!axesOnly && showLegend) });
+
+    const config = { responsive: true, displaylogo: false };
+
+    const traces = [];
+
+    // Punkte hinzufügen (auch wenn axesOnly)
+    const pts = getPoints();
+    if (pts.length) {
+      const filteredPts = (mode === "first") ? pts.filter(p => p.x >= 0 && p.y >= 0) : pts;
+
+      traces.push({
+        x: filteredPts.map(p => p.x),
+        y: filteredPts.map(p => p.y),
+        type: "scatter",
+        mode: "markers+text",
+        text: filteredPts.map(p => p.name || ""),
+        textposition: "top center",
+        textfont: { color: "#000", size: 12 },
+        marker: { color: "#000", size: 9, symbol: "circle" },
+        showlegend: false,
+        hovertemplate: "%{text}<br>(%{x}, %{y})<extra></extra>"
+      });
+    }
+
+    // Wenn nur Achsen: sofort plotten und fertig
+    if (axesOnly) {
+      // Berechnungsbox nicht verändern (nur Ansicht), aber wenn offen: Hinweis
+      if (calcBox.style.display !== "none") {
+        calcBox.innerHTML = `<p class="muted">Leeres Koordinatensystem: keine Berechnungen.</p>`;
+      }
+      Plotly.newPlot("plot", traces, layout, config);
+      return;
+    }
+
+    // Funktionen (falls vorhanden)
+    const fnsAll = getFunctionRows();
+    const fns = fnsAll.filter(f => f.show);
+
+    // Berechnungsbox (nur wenn eingeblendet)
+    if (calcBox.style.display !== "none") {
+      calcBox.innerHTML = "";
+      const blocks = document.createElement("div");
+      calcBox.appendChild(blocks);
+
+      if (!fns.length) {
+        calcBox.innerHTML = `<p class="muted">Keine sichtbaren Funktionen eingegeben.</p>`;
+      } else {
+        const xs = linspace(xmin, xmax, n);
+        for (const fn of fns) {
+          let compiled;
+          try { compiled = compileExpr(fn.expr); }
+          catch {
+            const p = document.createElement("p");
+            p.innerHTML = `<strong>${fn.expr}</strong>: <span style="color:#ffb0b8">Ungültiger Ausdruck.</span>`;
+            blocks.appendChild(p);
+            continue;
+          }
+          const ysRaw = xs.map(x => safeEval(compiled, x));
+          const y0 = withinRange(0, xmin, xmax) ? safeEval(compiled, 0) : null;
+          const roots = findRoots(xs, ysRaw, xmin, xmax);
+          const vertexQ = tryQuadraticVertex(compiled);
+          const vertex = vertexQ ? { x: vertexQ.xv, y: vertexQ.yv } : null;
+          blocks.appendChild(buildCalcBlock(fn.expr, { yIntercept: y0, roots, vertex }));
+        }
+      }
+    }
+
+    // Plot-Funktionen
+    if (fns.length) {
+      const xs = linspace(xmin, xmax, n);
+
+      for (const fn of fns) {
+        let compiled;
+        try { compiled = compileExpr(fn.expr); }
+        catch { continue; }
+
+        const ysRaw = xs.map(x => safeEval(compiled, x));
+        let plotX = xs, plotY = ysRaw;
+
+        if (mode === "first") {
+          const filtered = applyFirstQuadrant(xs, ysRaw);
+          plotX = filtered.fx; plotY = filtered.fy;
+        }
+
+        traces.push({
+          x: plotX, y: plotY,
+          type: "scatter",
+          mode: "lines",
+          name: prettyLegend(fn.expr),
+          line: { color: fn.color, width: 3 },
+          connectgaps: false,
+          hovertemplate: "x=%{x}<br>y=%{y}<extra></extra>"
+        });
+
+        // Marker: y-Achse / Scheitel / Nullstellen (hilfreich im Unterricht)
+        const y0 = withinRange(0, xmin, xmax) ? safeEval(compiled, 0) : null;
+        if (y0 !== null && (mode !== "first" || y0 >= 0)) {
+          traces.push({
+            x: [0], y: [y0],
+            type: "scatter", mode: "markers",
+            marker: { color: fn.color, size: 9 },
+            showlegend: false,
+            hovertemplate: `y-Achse<br>(0, ${formatNumber(y0)})<extra></extra>`
+          });
+        }
+
+        const vertexQ = tryQuadraticVertex(compiled);
+        if (vertexQ) {
+          const vx = vertexQ.xv, vy = vertexQ.yv;
+          if (mode !== "first" || (vx >= 0 && vy >= 0)) {
+            traces.push({
+              x: [vx], y: [vy],
+              type: "scatter", mode: "markers",
+              marker: { color: fn.color, size: 10, symbol: "diamond" },
+              showlegend: false,
+              hovertemplate: `Scheitel<br>(${formatNumber(vx)}, ${formatNumber(vy)})<extra></extra>`
+            });
+          }
+        }
+
+        const roots = findRoots(xs, ysRaw, xmin, xmax);
+        if (roots.length) {
+          traces.push({
+            x: roots, y: roots.map(() => 0),
+            type: "scatter", mode: "markers",
+            marker: { color: fn.color, size: 9, symbol: "x" },
+            showlegend: false,
+            hovertemplate: "Nullstelle<br>x=%{x}<extra></extra>"
+          });
+        }
+      }
+    }
+
+    Plotly.newPlot("plot", traces, layout, config);
+  }
+
+  function exportImage(format) {
+    Plotly.downloadImage("plot", {
+      format,
+      filename: "koordinatensystem_" + new Date().toISOString().slice(0,10),
+      height: 900,
+      width: 1200,
+      scale: 2
+    });
+  }
+
+  // ---------- Schnittpunkte ----------
+  function findIntersectionsForPair(compA, compB, xs) {
+    const diffs = xs.map(x => {
+      const a = safeEval(compA, x);
+      const b = safeEval(compB, x);
+      if (a === null || b === null) return null;
+      return a - b;
+    });
+
+    const roots = [];
+    for (let i = 0; i < xs.length - 1; i++) {
+      const x1 = xs[i], x2 = xs[i+1];
+      const d1 = diffs[i], d2 = diffs[i+1];
+      if (d1 === null || d2 === null) continue;
+
+      if (Math.abs(d1) < 1e-6) roots.push(x1);
+      if ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) {
+        const t = d1 / (d1 - d2);
+        roots.push(x1 + t * (x2 - x1));
+      }
+    }
+
+    roots.sort((a,b)=>a-b);
+    const uniq = [];
+    for (const r of roots) {
+      if (uniq.length === 0 || Math.abs(r - uniq[uniq.length - 1]) > 1e-2) uniq.push(r);
+    }
+
+    const pts = [];
+    for (const x of uniq) {
+      const y = safeEval(compA, x);
+      if (y !== null) pts.push({ x, y });
+    }
+    return pts;
+  }
+
+  function determineIntersections() {
+    const fnsAll = getFunctionRows();
+    const fns = fnsAll.filter(f => f.show);
+    if (fns.length < 2) {
+      intersectionBox.style.display = "block";
+      intersectionBox.innerHTML = `<h3>Schnittpunkte</h3><div class="muted">Mindestens zwei sichtbare Funktionen nötig.</div>`;
+      return;
+    }
+
+    const mode = el("quadrantMode").value;
+    let xmin = Number(el("xmin").value);
+    let xmax = Number(el("xmax").value);
+    let ymin = Number(el("ymin").value);
+    let ymax = Number(el("ymax").value);
+    const n = Math.max(600, Math.min(8000, Number(el("numPoints").value) || 1400));
+
+    if (mode === "first") {
+      xmin = Math.max(0, xmin);
+      ymin = Math.max(0, ymin);
+    }
+    if (xmax <= xmin) xmax = xmin + 10;
+    if (ymax <= ymin) ymax = ymin + 10;
+
+    const xs = linspace(xmin, xmax, n);
+
+    const compiled = [];
+    for (const fn of fns) {
+      try { compiled.push({ ...fn, comp: compileExpr(fn.expr) }); }
+      catch { /* skip */ }
+    }
+    if (compiled.length < 2) return;
+
+    const all = [];
+    for (let i = 0; i < compiled.length; i++) {
+      for (let j = i + 1; j < compiled.length; j++) {
+        const A = compiled[i], B = compiled[j];
+        const pts = findIntersectionsForPair(A.comp, B.comp, xs);
+
+        const ptsFiltered = (mode === "first")
+          ? pts.filter(p => p.x >= 0 && p.y >= 0)
+          : pts;
+
+        for (const p of ptsFiltered) {
+          if (p.y >= ymin - 1e-6 && p.y <= ymax + 1e-6) {
+            all.push({ x: p.x, y: p.y });
+          }
+        }
+      }
+    }
+
+    all.sort((p,q)=> (p.x - q.x) || (p.y - q.y));
+    const uniq = [];
+    for (const p of all) {
+      const last = uniq[uniq.length - 1];
+      if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 1e-2) uniq.push(p);
+    }
+
+    intersectionBox.style.display = "block";
+
+    if (!uniq.length) {
+      intersectionBox.innerHTML = `<h3>Schnittpunkte</h3><div class="muted">Keine Schnittpunkte im sichtbaren Bereich gefunden.</div>`;
+      return;
+    }
+
+    const list = document.createElement("ul");
+    for (const p of uniq.slice(0, 30)) {
+      const li = document.createElement("li");
+      li.textContent = `(${formatNumber(p.x)}, ${formatNumber(p.y)})`;
+      list.appendChild(li);
+    }
+
+    intersectionBox.innerHTML = `<h3>Schnittpunkte</h3>`;
+    intersectionBox.appendChild(list);
+
+    // Marker im Plot hinzufügen (löschen später möglich)
+    const markerTrace = {
+      x: uniq.map(p => p.x),
+      y: uniq.map(p => p.y),
+      type: "scatter",
+      mode: "markers+text",
+      text: uniq.map(p => `(${formatNumber(p.x)}|${formatNumber(p.y)})`),
+      textposition: "top center",
+      textfont: { color: "#000", size: 11 },
+      marker: { color: "#000", size: 9, symbol: "circle-open" },
+      showlegend: false
+    };
+
+    Plotly.addTraces("plot", markerTrace).then(() => {
+      const gd = el("plot");
+      intersectionTraceIndices = [gd.data.length - 1];
+    });
+  }
+
+  function clearIntersections() {
+    const gd = el("plot");
+    if (!gd || !gd.data || !gd.data.length) return;
+
+    if (intersectionTraceIndices.length) {
+      Plotly.deleteTraces("plot", intersectionTraceIndices);
+      intersectionTraceIndices = [];
+    }
+
+    intersectionBox.style.display = "none";
+    intersectionBox.innerHTML = `<h3>Schnittpunkte</h3><div class="muted">Klicke auf „Schnittpunkte bestimmen“.</div>`;
+  }
+
+  // ---------- UI wiring ----------
+  el("btnPlot").addEventListener("click", () => plot({ axesOnly: false }));
+  el("btnAxesOnly").addEventListener("click", () => plot({ axesOnly: true }));
+  el("legendToggle").addEventListener("change", () => plot({ axesOnly: false }));
+
+  el("btnExportJpg").addEventListener("click", () => exportImage("jpeg"));
+  el("btnExportSvg").addEventListener("click", () => exportImage("svg"));
+
+  el("btnAddFn").addEventListener("click", () => addFunctionRow({ expr: "", color: "#4a7dff", show: true }));
+  el("btnAddPt").addEventListener("click", () => addPointRow({ name: "", x: "", y: "" }));
+
+  document.querySelectorAll("[data-range]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const [a,b,c,d] = btn.getAttribute("data-range").split(",").map(Number);
+      el("xmin").value = a; el("xmax").value = b; el("ymin").value = c; el("ymax").value = d;
+      if (a >= 0 && c >= 0) el("quadrantMode").value = "first";
+      plot({ axesOnly: false });
+    });
+  });
+
+  el("btnSquareAxes").addEventListener("click", () => {
+    Plotly.relayout("plot", { "yaxis.scaleanchor": "x", "yaxis.scaleratio": 1 });
+  });
+
+  el("btnToggleCalcs").addEventListener("click", () => {
+    const isHidden = (calcBox.style.display === "none");
+    calcBox.style.display = isHidden ? "block" : "none";
+    if (isHidden) plot({ axesOnly: false });
+  });
+
+  el("btnIntersections").addEventListener("click", determineIntersections);
+  el("btnClearIntersections").addEventListener("click", clearIntersections);
+
+  // ---------- Startwerte ----------
+  addFunctionRow({ expr: "x^2-4", color: "#4a7dff", show: true });
+  addFunctionRow({ expr: "2*x-3", color: "#ffb84a", show: true });
+
+  addPointRow({ name: "A", x: "2", y: "3" });
+  addPointRow({ name: "B", x: "-1", y: "4" });
+
+  plot({ axesOnly: false });
+</script>
+</body>
+</html>
