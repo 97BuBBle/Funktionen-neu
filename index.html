@@ -41,7 +41,6 @@
     .panel{background:rgba(18,26,51,.92);border:1px solid var(--border);border-radius:14px;padding:14px;}
     .plotWrap{display:flex;flex-direction:column;gap:10px;align-items:flex-start;}
 
-    /* QUADRATISCHER PLOTBEREICH */
     .plotArea{
       width:min(100%, 900px);
       aspect-ratio:1 / 1;
@@ -448,14 +447,14 @@
     return n;
   }
 
-  function paddedRange(min, max, step, mode, isX) {
+  function paddedRange(min, max, step, mode) {
     const span = Math.max(1e-9, max - min);
     const pad = Math.max(step, span * 0.06);
     let pMin = min - pad;
     let pMax = max + pad;
     if (mode === "first") pMin = Math.max(0, pMin);
     if (pMax <= pMin) pMax = pMin + Math.max(10, pad);
-    return [pMin, pMax, pad];
+    return [pMin, pMax];
   }
 
   function numberToLabel(v, step) {
@@ -528,8 +527,8 @@
     const yStep = safeStep(el("yTickStep").value, 1);
     const showGrid = (el("gridToggle").value === "on");
 
-    const [xmin, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
-    const [ymin, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
+    const [xmin, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode);
+    const [ymin, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode);
 
     const xAxisLine = (xmin <= 0 && xmax >= 0) ? 0 : xmin;
     const yAxisLine = (ymin <= 0 && ymax >= 0) ? 0 : ymin;
@@ -670,7 +669,6 @@
     });
 
     const { xmin, xmax, ymin, ymax } = layout._computedRange;
-
     const config = { responsive: true, displaylogo: false };
     const traces = [];
 
@@ -796,14 +794,49 @@
     Plotly.newPlot("plot", traces, layout, config);
   }
 
-  function exportImage(format) {
-    Plotly.downloadImage("plot", {
-      format,
-      filename: "koordinatensystem_" + new Date().toISOString().slice(0,10),
-      height: 1400,
-      width: 1400,
-      scale: 2
-    });
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function exportImage(format) {
+    const gd = el("plot");
+
+    if (format === "jpeg") {
+      Plotly.downloadImage(gd, {
+        format: "jpeg",
+        filename: "koordinatensystem_" + new Date().toISOString().slice(0,10),
+        height: 1400,
+        width: 1400,
+        scale: 2
+      });
+      return;
+    }
+
+    if (format === "svg") {
+      try {
+        const dataUrl = await Plotly.toImage(gd, {
+          format: "svg",
+          width: 1400,
+          height: 1400
+        });
+
+        const svgText = dataUrl.replace(/^data:image\/svg\+xml;charset=utf-8,/, "");
+        const decoded = decodeURIComponent(svgText);
+        const blob = new Blob([decoded], { type: "image/svg+xml;charset=utf-8" });
+
+        downloadBlob(blob, "koordinatensystem_" + new Date().toISOString().slice(0,10) + ".svg");
+      } catch (err) {
+        alert("Der SVG-Export hat leider nicht funktioniert.");
+        console.error(err);
+      }
+    }
   }
 
   function findIntersectionsForPair(compA, compB, xs) {
@@ -864,10 +897,10 @@
     if (xmaxUser <= xminUser) xmaxUser = xminUser + 10;
     if (ymaxUser <= yminUser) ymaxUser = yminUser + 10;
 
-    const [xmin] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
-    const [, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode, true);
-    const [ymin] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
-    const [, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode, false);
+    const [xmin] = paddedRange(xminUser, xmaxUser, xStep, mode);
+    const [, xmax] = paddedRange(xminUser, xmaxUser, xStep, mode);
+    const [ymin] = paddedRange(yminUser, ymaxUser, yStep, mode);
+    const [, ymax] = paddedRange(yminUser, ymaxUser, yStep, mode);
 
     const n = Math.max(600, Math.min(8000, Number(el("numPoints").value) || 1400));
     const xs = linspace(xmin, xmax, n);
@@ -939,7 +972,7 @@
     const gd = el("plot");
     if (!gd || !gd.data || !gd.data.length) return;
     if (intersectionTraceIndices.length) {
-      Plotly.deleteTraces("plot", intersectionTraceIndices);
+      Plotly.deleteTraces(gd, intersectionTraceIndices);
       intersectionTraceIndices = [];
     }
     intersectionBox.style.display = "none";
